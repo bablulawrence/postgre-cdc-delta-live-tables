@@ -1,1 +1,1 @@
-##PostgreSQL CDC example with Databricks Delta Live Tables
+## PostgreSQL CDC example with Databricks Delta Live Tables
