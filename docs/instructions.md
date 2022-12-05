@@ -1,10 +1,26 @@
-Environment
-==================
+## High level Steps
 
-1.Provision windows VM(Use azure image)
-2.Install WSL
+[Setup Postgrest On WSL2](https://chloesun.medium.com/set-up-postgresql-on-wsl2-and-connect-to-postgresql-with-pgadmin-on-windows-ca7f0b7f38ab)
 
-3. Install Postgre SQL
+[Install Kafka On WSL2](https://michaeljohnpena.com/blog/kafka-wsl2/)
+
+[Create event hub](https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create)
+
+[Download and install Debizium connector](https://dev.to/azure/tutorial-set-up-a-change-data-capture-architecture-on-azure-using-debezium-postgres-and-kafka-49h6)
+
+[Download and install Debizium connector MS](https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-kafka-connect-debezium)
+
+Install Wal2Json Plugin - sudo apt-get install postgresql-12-wal2json
+
+[Change Postgres replication to logical](https://hevodata.com/learn/postgresql-logical-replication/#:~:text=To%20perform%20logical%20replication%20in,conf%20file.)
+
+[Install Debezium PostgreSQL source connector](https://dev.to/azure/tutorial-set-up-a-change-data-capture-architecture-on-azure-using-debezium-postgres-and-kafka-49h6)
+
+[Run kafkacat to read events](https://github.com/Azure/azure-event-hubs-for-kafka/tree/master/quickstart/kafkacat)
+
+
+### PostgreSQL
+
 sudo apt update
 sudo apt install postgresql postgresql-contrib
 sudo service postgresql start
@@ -17,15 +33,12 @@ psql
 \d table anme  /*deplay schema*/
 
 
+### Loading sales_order json file from retail_org databricks datasets
 
-Loading sales_order json file from retail_org databricks datasets
--------------------------------------------------------------------
 \Connect Retail 
 CREATE TABLE temp (data jsonb);
 \COPY temp(data) FROM '/home/blawrence/ws/sales_orders.json';
 SELECT data->>'customer_id', data->>'customer_name', data->>'clicked_items' FROM temp;
-
-
 
 CREATE TABLE sales_order (
 	order_number integer,
@@ -46,7 +59,6 @@ SELECT (data->>'order_number')::integer, (data->>'customer_id')::integer, (data-
 	(data->>'order_datetime')::text, (data->>'ordered_products')::json, (data->>'promo_info')::json
 FROM temp;
 
-------------------
 \Connect Retail 
 CREATE TABLE temp_customers (data csv);
 \COPY temp(data) FROM '/home/blawrence/ws/customers.csv';
@@ -98,8 +110,7 @@ pg_dump retail_org > retail_org.sql
 
 psql retail_org1 < retail_org.sql
 
-Databricks
-===================
+### Databricks
 
 databricks secrets create-scope --scope adlsgen2 --initial-manage-principal users
 databricks secrets put --scope adlsgen2 --key adlsmountkey
