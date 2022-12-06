@@ -48,4 +48,4 @@ __queuestorage__
 __azurite_db*__.json
 
 tests/
-/docs/local.md
+/local
