@@ -33,7 +33,6 @@ Follow the instruction in the [blog]((https://chloesun.medium.com/set-up-postgre
 	`psql retail_org1 < retail_org.sql`
 
 ## Install Kafa Connect
-Follow the instructions in the [blog] (https://michaeljohnpena.com/blog/kafka-wsl2/) to install Kafka and Kafa connect
 
 1. First install all dependencies
 
@@ -63,8 +62,70 @@ Follow the instructions in the [blog] (https://michaeljohnpena.com/blog/kafka-ws
 
 ## Install Debizium connector for PostgreSQL
 
-Download and install Debizium connector for PostgreSQL [blog]((https://dev.to/azure/tutorial-set-up-a-change-data-capture-architecture-on-azure-using-debezium-postgres-and-kafka-49h6)
-)
+1. Go to [Debezium PostgreSQL deploying connector page](https://debezium.io/documentation/reference/1.2/connectors/postgresql.html#postgresql-deploying-a-connector). Copy the link of `connectors plug-in archive`
+
+2. Download the plugin and extract the contents
+
+```sh
+	wget https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/1.2.5.Final/debezium-connector-postgres-1.2.5.Final-plugin.tar.gz
+	tar -xvzf debezium-connector-postgres-1.2.5.Final-plugin.tar.gz
+
+```
+3. Copy debezium JAR files to Kafka installation. 
+
+```sh
+	cp debezium-connector-postgres/*.jar $KAFKA_HOME/libs
+```
+4. Update the content of Kafka connect properties file in `$KAFKA_HOME/config/connect-distributed.properties` as shown below
+
+```sh
+	bootstrap.servers={event hub namespace}.servicebus.windows.net:9093
+	group.id=connect-cluster-group
+
+	# connect internal topic names, auto-created if not exists
+	config.storage.topic=connect-cluster-configs
+	offset.storage.topic=connect-cluster-offsets
+	status.storage.topic=connect-cluster-status
+
+	# internal topic replication factors - auto 3x replication in Azure Storage
+	config.storage.replication.factor=1
+	offset.storage.replication.factor=1
+	status.storage.replication.factor=1
+
+	rest.advertised.host.name=connect
+	offset.flush.interval.ms=10000
+
+	key.converter=org.apache.kafka.connect.json.JsonConverter
+	value.converter=org.apache.kafka.connect.json.JsonConverter
+	internal.key.converter=org.apache.kafka.connect.json.JsonConverter
+	internal.value.converter=org.apache.kafka.connect.json.JsonConverter
+
+	internal.key.converter.schemas.enable=false
+	internal.value.converter.schemas.enable=false
+
+	# required EH Kafka security settings
+	security.protocol=SASL_SSL
+	sasl.mechanism=PLAIN
+	sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="{Event hub connection string}";
+
+	producer.security.protocol=SASL_SSL
+	producer.sasl.mechanism=PLAIN
+	producer.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="{Event hub connection string}";
+
+	consumer.security.protocol=SASL_SSL
+	consumer.sasl.mechanism=PLAIN
+	consumer.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="{Event hub connection string}";
+
+	plugin.path=/usr/lib/kafka_2.12-3.3.1/libs # path to the libs directory within the Kafka release
+
+```
+5. Start Kafka connect cluster by running following command 
+
+```
+$KAFKA_HOME/bin/connect-distributed.sh connect.properties
+
+```
+6. Wait for few mins and check whether Kafka Connect internal topics in Azure Event Hubs.
 
 ## Change PostgreSQL replication to Logical
 
@@ -144,3 +205,20 @@ VALUES (100,340758025.0,'A','Bablu','MI','WYANDOTTE','48192','CORA',1574.0,'Test
 
 ```
 
+# References
+
+[Setup Postgrest On WSL2](https://chloesun.medium.com/set-up-postgresql-on-wsl2-and-connect-to-postgresql-with-pgadmin-on-windows-ca7f0b7f38ab)
+
+[Install Kafka On WSL2](https://michaeljohnpena.com/blog/kafka-wsl2/)
+
+[Create event hub](https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create)
+
+[Download and install Debizium connector](https://dev.to/azure/tutorial-set-up-a-change-data-capture-architecture-on-azure-using-debezium-postgres-and-kafka-49h6)
+
+[Download and install Debizium connector MS](https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-kafka-connect-debezium)
+
+[Change Postgres replication to logical](https://hevodata.com/learn/postgresql-logical-replication/#:~:text=To%20perform%20logical%20replication%20in,conf%20file.)
+
+[Install Debezium PostgreSQL source connector](https://dev.to/azure/tutorial-set-up-a-change-data-capture-architecture-on-azure-using-debezium-postgres-and-kafka-49h6)
+
+[Run kafkacat to read events](https://github.com/Azure/azure-event-hubs-for-kafka/tree/master/quickstart/kafkacat)
