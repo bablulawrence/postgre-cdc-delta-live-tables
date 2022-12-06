@@ -18,8 +18,7 @@ Follow the instructions [here](https://learn.microsoft.com/en-us/azure/event-hub
 
 ## Install PostgreSQL
 
-Follow the instruction in the [blog]((https://chloesun.medium.com/set-up-postgresql-on-wsl2-and-connect-to-postgresql-with-pgadmin-on-windows-ca7f0b7f38ab)
-) to setup WSL2 on windows
+Follow the instruction in the [blog](https://chloesun.medium.com/set-up-postgresql-on-wsl2-and-connect-to-postgresql-with-pgadmin-on-windows-ca7f0b7f38ab)to setup WSL2 on windows
 
 ## Import Retail Org database backup to PostgreSQL
 
