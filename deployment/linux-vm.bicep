@@ -19,13 +19,7 @@ param linuxAdminPasswordOrKey string
 param linuxAdminDnsLabelPrefix string = toLower('${linuxVmName}-${uniqueString(resourceGroup().id)}')
 
 @description('The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version.')
-@allowed([
-  '12.04.5-LTS'
-  '14.04.5-LTS'
-  '16.04.0-LTS'
-  '18.04-LTS'
-])
-param ubuntuOSVersion string = '18.04-LTS'
+param ubuntuOSVersion string = '20_04-lts-gen2'
 
 @description('Location for all resources.')
 param location string = resourceGroup().location
@@ -148,7 +142,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
   location: location
   properties: {
     hardwareProfile: {
-      linuxVmSize: linuxVmSize
+      vmSize: linuxVmSize
     }
     storageProfile: {
       osDisk: {
@@ -159,7 +153,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
       }
       imageReference: {
         publisher: 'Canonical'
-        offer: 'UbuntuServer'
+        offer: '0001-com-ubuntu-server-focal'
         sku: ubuntuOSVersion
         version: 'latest'
       }
@@ -173,8 +167,8 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
     }
     osProfile: {
       computerName: linuxVmName
-      AdminUsername: linuxAdminUsername
-      AdminPassword: linuxAdminPasswordOrKey
+      adminUsername: linuxAdminUsername
+      adminPassword: linuxAdminPasswordOrKey
       linuxConfiguration: ((authenticationType == 'password') ? null : linuxConfiguration)
     }
   }
