@@ -87,7 +87,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
   }
 }
 
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' = {
+resource linuxSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' = {
   parent: vnet
   name: linuxSubnetName
   properties: {
@@ -106,7 +106,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-05-01' = {
         name: 'ipconfig1'
         properties: {
           subnet: {
-            id: subnet.id
+            id: linuxSubnet.id
           }
           privateIPAllocationMethod: 'Dynamic'
           publicIPAddress: {

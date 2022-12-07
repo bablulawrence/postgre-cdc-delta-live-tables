@@ -1,8 +1,20 @@
 @description('The name of you Virtual Machine.')
-param linuxVmName string = 'az-cslabs-ph2-vm1'
+param linuxVmName string = 'az-cslabs-ph2-linux-vm1'
+
+@description('Name of the virtual machine.')
+param windowsVmName string = 'azcslabsph2win1'
+
+@description('Name of the virual network.')
+param virtualNetworkName string = 'az-cslabs-ph2-vnet'
+
+@description('Name of the Network Security Group')
+param networkSecurityGroupName string = 'az-cslabs-ph2-secgrp'
 
 @description('Username for the Virtual Machine.')
-param linuxVmAdminUsername string
+param linuxVmAdminUsername string = 'linuxAdminUser'
+
+@description('Username for the Virtual Machine.')
+param windowsVmAdminUsername string = 'windowsVmAdminUsername'
 
 @description('Type of authentication to use on the Virtual Machine. SSH key is recommended.')
 @allowed([
@@ -27,17 +39,6 @@ param location string = resourceGroup().location
 @description('The size of the VM')
 param linuxVmSize string = 'Standard_B2s'
 
-@description('Name of the VNET')
-param virtualNetworkName string = 'vNet'
-
-@description('Name of the subnet in the virtual network')
-param linuxVmSubnetName string = 'linuxSubnet'
-
-@description('Name of the Network Security Group')
-param networkSecurityGroupName string = 'SecGroupNet'
-
-@description('Username for the Virtual Machine.')
-param windowsVmAdminUsername string
 
 @description('Password for the Virtual Machine.')
 @minLength(12)
@@ -46,9 +47,6 @@ param windowsVmAdminPassword string
 
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
 param windowsVmDnsLabelPrefix string = toLower('${windowsVmName}-${uniqueString(resourceGroup().id, windowsVmName)}')
-
-@description('Name for the Public IP used to access the Virtual Machine.')
-param windowsVmPublicIpAddressName string = 'myPublicIP'
 
 @description('Allocation method for the Public IP used to access the Virtual Machine.')
 @allowed([
@@ -73,20 +71,20 @@ param windowsVmOSVersion string = '2022-datacenter-azure-edition'
 @description('Size of the virtual machine.')
 param windowsVmSize string = 'Standard_D2s_v5'
 
-@description('Name of the virtual machine.')
-param windowsVmName string = 'simple-vm'
-
-
-var linuxVmPublicIPAddressName = '${linuxVmName}PublicIP'
-var networkInterfaceName = '${linuxVmName}NetInt'
-var osDiskType = 'Standard_LRS'
+var vnetAddressPrefix = '10.1.0.0/16'
 var linuxVmSubnetAddressPrefix = '10.1.0.0/24'
-var addressPrefix = '10.1.0.0/16'
-var windowsVmStorageAccountName = 'bootdiags${uniqueString(resourceGroup().id)}'
-var windowsVmNicName = 'windowsVmNic'
+var windowsVmSubnetAddressPrefix = '10.1.1.0/24'
 
+var linuxVmOsDiskType = 'Standard_LRS'
+var linuxVmPublicIPAddressName = '${linuxVmName}PublicIP'
+var linuxVmNetworkInterfaceName = '${linuxVmName}NetInt'
+var linuxVmSubnetName = 'linuxVmSubnet'
+
+var windowVmOsDiskType = 'StandardSSD_LRS'
+var windowsVmPublicIPAddressName = '${windowsVmName}PublicIP'
+var windowsVmNicName = '${windowsVmName}NetInt'
 var windowsVmSubnetName = 'windowsVmSubnet'
-var windowsVmSubnetAddressPrefix = '10.0.0.0/24'
+var windowsVmStorageAccountName = 'bootdiags${uniqueString(resourceGroup().id)}'
 
 
 var linuxVmConfiguration = {
@@ -109,7 +107,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
       {
         name: 'SSH'
         properties: {
-          priority: 1000
+          priority: 100
           protocol: 'Tcp'
           access: 'Allow'
           direction: 'Inbound'
@@ -122,14 +120,14 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
       {
         name: 'default-allow-3389'
         properties: {
-          priority: 1000
+          priority: 200
           access: 'Allow'
           direction: 'Inbound'
-          destinationPortRange: '3389'
           protocol: 'Tcp'
           sourcePortRange: '*'
           sourceAddressPrefix: '*'
           destinationAddressPrefix: '*'
+          destinationPortRange: '3389'
         }
       }
     ]
@@ -142,7 +140,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
   properties: {
     addressSpace: {
       addressPrefixes: [
-        addressPrefix
+        vnetAddressPrefix
       ]
     }
   }
@@ -155,6 +153,9 @@ resource linuxVmSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' = 
     addressPrefix: linuxVmSubnetAddressPrefix
     privateEndpointNetworkPolicies: 'Enabled'
     privateLinkServiceNetworkPolicies: 'Enabled'
+    networkSecurityGroup: {
+      id: nsg.id
+    }
   }
 }
 
@@ -165,11 +166,14 @@ resource windowsVmSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' 
     addressPrefix: windowsVmSubnetAddressPrefix
     privateEndpointNetworkPolicies: 'Enabled'
     privateLinkServiceNetworkPolicies: 'Enabled'
+    networkSecurityGroup: {
+      id: nsg.id
+    }
   }
 }
 
 resource linuxVmNic 'Microsoft.Network/networkInterfaces@2021-05-01' = {
-  name: networkInterfaceName
+  name: linuxVmNetworkInterfaceName
   location: location
   properties: {
     ipConfigurations: [
@@ -185,10 +189,7 @@ resource linuxVmNic 'Microsoft.Network/networkInterfaces@2021-05-01' = {
           }
         }
       }
-    ]
-    networkSecurityGroup: {
-      id: nsg.id
-    }
+    ]    
   }
 }
 
@@ -219,7 +220,7 @@ resource linuxVm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
       osDisk: {
         createOption: 'FromImage'
         managedDisk: {
-          storageAccountType: osDiskType
+          storageAccountType: linuxVmOsDiskType
         }
       }
       imageReference: {
@@ -256,7 +257,7 @@ resource windowsVmStg 'Microsoft.Storage/storageAccounts@2021-04-01' = {
 }
 
 resource windowsVmPublicIP 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
-  name: windowsVmPublicIpAddressName
+  name: windowsVmPublicIPAddressName        
   location: location
   sku: {
     name: windowsVmPublicIpSku
@@ -278,12 +279,12 @@ resource windowsVmNic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
         name: 'ipconfig1'
         properties: {
           privateIPAllocationMethod: 'Dynamic'
+          subnet: {
+            id: windowsVmSubnet.id
+          }
           publicIPAddress: {
             id: windowsVmPublicIP.id
-          }
-          subnet: {
-            id: resourceId('Microsoft.Network/virtualNetworks/subnets', vnet.name, windowsVmSubnetName)
-          }
+          }          
         }
       }
     ]
@@ -312,7 +313,7 @@ resource windowsVm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
       osDisk: {
         createOption: 'FromImage'
         managedDisk: {
-          storageAccountType: 'StandardSSD_LRS'
+          storageAccountType: windowVmOsDiskType
         }
       }
       dataDisks: [
