@@ -8,7 +8,10 @@ param windowsVmName string = 'azcslabsph2win1'
 param virtualNetworkName string = 'az-cslabs-ph2-vnet'
 
 @description('Name of the Network Security Group')
-param networkSecurityGroupName string = 'az-cslabs-ph2-secgrp'
+param linuxVmNsgName string = 'az-cslabs-ph2-linux-secgrp'
+
+@description('Name of the Network Security Group')
+param windowsVmNsgName string = 'az-cslabs-ph2-win-secgrp'
 
 @description('Username for the Virtual Machine.')
 param linuxVmAdminUsername string = 'linuxAdminUser'
@@ -99,13 +102,35 @@ var linuxVmConfiguration = {
   }
 }
 
-resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-  name: networkSecurityGroupName
+resource linuxVmNsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+  name: linuxVmNsgName
+  location: location
+  properties: {
+    securityRules: [      
+      {
+        name: 'AllowSSH'
+        properties: {
+          priority: 100
+          access: 'Allow'
+          direction: 'Inbound'
+          protocol: 'Tcp'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '22'
+        }
+      }            
+    ]
+  }
+}
+
+resource windowsVmNsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+  name: windowsVmNsgName
   location: location
   properties: {
     securityRules: [
       {
-        name: 'default-allow-3389'
+        name: 'AllowRDP'
         properties: {
           priority: 100
           access: 'Allow'
@@ -116,20 +141,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
           destinationAddressPrefix: '*'
           destinationPortRange: '3389'
         }
-      }
-      {
-        name: 'AllowTagSSHInbound'
-        properties: {
-          priority: 120
-          access: 'Allow'
-          protocol: 'TCP'
-          direction: 'Inbound'          
-          sourceAddressPrefix: 'VirtualNetwork'
-          sourcePortRange: '*'
-          destinationPortRange: '22'
-          destinationAddressPrefix: '*'
-        }
-      }            
+      }                  
     ]
   }
 }
@@ -154,7 +166,7 @@ resource linuxVmSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' = 
     privateEndpointNetworkPolicies: 'Enabled'
     privateLinkServiceNetworkPolicies: 'Enabled'
     networkSecurityGroup: {
-      id: nsg.id
+      id: linuxVmNsg.id
     }
   }
 }
@@ -167,7 +179,7 @@ resource windowsVmSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' 
     privateEndpointNetworkPolicies: 'Enabled'
     privateLinkServiceNetworkPolicies: 'Enabled'
     networkSecurityGroup: {
-      id: nsg.id
+      id: windowsVmNsg.id
     }
   }
 }
