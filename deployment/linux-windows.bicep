@@ -105,22 +105,9 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
   properties: {
     securityRules: [
       {
-        name: 'SSH'
-        properties: {
-          priority: 100
-          protocol: 'Tcp'
-          access: 'Allow'
-          direction: 'Inbound'
-          sourceAddressPrefix: '*'
-          sourcePortRange: '*'
-          destinationAddressPrefix: '*'
-          destinationPortRange: '22'
-        }
-      }
-      {
         name: 'default-allow-3389'
         properties: {
-          priority: 200
+          priority: 100
           access: 'Allow'
           direction: 'Inbound'
           protocol: 'Tcp'
@@ -130,6 +117,19 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
           destinationPortRange: '3389'
         }
       }
+      {
+        name: 'AllowTagSSHInbound'
+        properties: {
+          priority: 120
+          access: 'Allow'
+          protocol: 'TCP'
+          direction: 'Inbound'          
+          sourceAddressPrefix: 'VirtualNetwork'
+          sourcePortRange: '*'
+          destinationPortRange: '22'
+          destinationAddressPrefix: '*'
+        }
+      }            
     ]
   }
 }
