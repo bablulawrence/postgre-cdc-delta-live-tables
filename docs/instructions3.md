@@ -1,24 +1,12 @@
-# Deploying PostgreSQL CDC with Azure Event Hub
-
-## Provision a Azure VM
-
-Provision windows VM using Windows Server 2022 Datacenter Azure Edition
-
-## Install WSL2 on windows server
-
-Run following command as a powershell administrator to install WSL2 and Ubuntu on the Azure VM
-	
-`wsl --install`
-
-Please note this will work on Windows Server 2022
+# Deploying Change Data Capture for Azure Database for PostgreSQL with Azure Event Hub
 
 ## Create Event hub
 
-Follow the instructions [here](https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create) to create an event hub namespace and an event hub 
+Follow the instructions [here](https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create) to create an event hub namespace and an event hub. 
 
-## Install PostgreSQL
+## Create Azure PostgresSQL Database
 
-Follow the instruction in the [blog](https://chloesun.medium.com/set-up-postgresql-on-wsl2-and-connect-to-postgresql-with-pgadmin-on-windows-ca7f0b7f38ab)to setup PostgreSQL on WSL2 windows
+Follow the instruction in the [tutorial](https://learn.microsoft.com/en-us/azure/postgresql/single-server/tutorial-design-database-using-azure-portal).
 
 ## Import Retail Org database backup to PostgreSQL
 
@@ -31,7 +19,11 @@ Follow the instruction in the [blog](https://chloesun.medium.com/set-up-postgres
 
 	`psql retail_org1 < retail_org.sql`
 
-## Install Kafa Connect
+## Provision Azure Linux VM
+
+Follow instructions in the [tutorial](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/quick-create-portal). Use Ubuntu 20.4 LTS distribution. 
+
+## Install Kafa Connect in the VM
 
 1. First install all dependencies
 
@@ -44,7 +36,8 @@ Follow the instruction in the [blog](https://chloesun.medium.com/set-up-postgres
 
 ```sh
 	wget  wget https://downloads.apache.org/kafka/3.3.1/kafka_2.12-3.3.1.tgz
-	tar -xvzf kafka_2.13-3.2.0.tgz
+	tar -xvzf kafka_2.12-3.3.1
+	mv kafka_2.12-3.3.1 /usr/lib/
 ```
 3. Add following lines to .bashrc file
 
@@ -124,23 +117,17 @@ Follow the instruction in the [blog](https://chloesun.medium.com/set-up-postgres
 $KAFKA_HOME/bin/connect-distributed.sh $KAFKA_HOME/config/connect-distributed.properties 
 
 ```
+For running the command at the start up put the above command into file `/etc/rc.local`
 6. Wait for few mins and check whether Kafka Connect internal topics in Azure Event Hubs.
 
-## Change PostgreSQL replication to Logical
+## Change Azure PostgreSQL replication to Logical
 
-To perform logical replication in PostgreSQL, you’ve to change the wal_level = logical parameter. To change the value of this parameter, you have to open the `postgresql.conf` file. This file can be found in the following directory:
+1. For single server use command 
+`az postgres server configuration set --resource-group <name of resource group> --server-name <name of server> --name azure.replication_support --value logical`. 
 
-` /etc/postgresql/{version}/main e.g. /etc/postgresql/12/main`
+2. For flexible server use command 
 
-Open the file, go to the WRITE-AHEAD LOG settings. Uncomment the parameter wal_level and set it to the following:
-
-` wal_level = logical `
-
-Restart the PostgreSQL service using command ` sudo service postgresql restart `
-
-Note the you should not change the owner of the `postgresql.conf` file. If you get an error while restrating the PostgreSQL service please change the owner back to the one before by running following command. 
-
-`chown postgres sample2`
+`az postgres flexible-server parameter set --resource-group <name of resource group> --server-name servername --name wal_level --value logical`
 
 ## Install Wal2Json plugin
 
@@ -173,6 +160,9 @@ Install wall2json plugin using the following command.
 
 `curl -X POST -H "Content-Type: application/json" --data @pg-source-connector.json http://localhost:8083/connectors`
 
+For finding the status of all connectors use command `curl -s http://localhost:8083/connectors/iocldb-connector/status`
+For deleting connectors use command `curl -i -X DELETE localhost:8083/connectors/{connector name}/`
+
 ## Run Kcat to consume events
 
 1. Create a kcat(kafkacat) config file `kafkacat.conf` in current directory with following contents
@@ -191,7 +181,7 @@ Install wall2json plugin using the following command.
 3. Run following command to get CDC for customers table
 `kafkacat -b {event hub namesapce}:9093 -t retail-server.public.customers -o beginning -F kafkacat.conf`
 
-## Perform instert to Retail Org database
+## Perform instert to the customer table. 
 
 Insert rows to customer table using following statement 
 
@@ -199,7 +189,7 @@ Insert rows to customer table using following statement
 
 INSERT INTO customers (customer_id,tax_id,tax_code,customer_name,state,city,postcode,street,number,unit,region,district,lon,lat,
 			ship_to_address,valid_from,valid_to,units_purchased,loyalty_segment)
-VALUES (100,340758025.0,'A','John Smith','MI','WYANDOTTE','48192','CORA',1574.0,'Test','MI','test',
+VALUES (100,340758025.0,'A','John smith','MI','WYANDOTTE','48192','CORA',1574.0,'Test','MI','test',
 	-83.1629844,42.2175195,'MI', 1574.0,1534928698,2.0,0);
 
 ```
