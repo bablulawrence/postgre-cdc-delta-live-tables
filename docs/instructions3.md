@@ -117,7 +117,9 @@ Follow instructions in the [tutorial](https://learn.microsoft.com/en-us/azure/vi
 $KAFKA_HOME/bin/connect-distributed.sh $KAFKA_HOME/config/connect-distributed.properties 
 
 ```
-For running the command at the start up put the above command into file `/etc/rc.local`
+For running the command at the start up put the above command into file `/etc/rc.local` or in crontab using `sudo crontab -e`
+using statement `@reboot {command}`. Make sure to use the full path to the files in the command. 
+
 6. Wait for few mins and check whether Kafka Connect internal topics in Azure Event Hubs.
 
 ## Change Azure PostgreSQL replication to Logical
@@ -128,6 +130,10 @@ For running the command at the start up put the above command into file `/etc/rc
 2. For flexible server use command 
 
 `az postgres flexible-server parameter set --resource-group <name of resource group> --server-name servername --name wal_level --value logical`
+
+3. Grant replication privilleges to the role use to run the kafka connect
+
+ALTER ROLE {role name} WITH REPLICATION
 
 ## Install Wal2Json plugin
 
