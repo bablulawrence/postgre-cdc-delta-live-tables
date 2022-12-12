@@ -44,7 +44,7 @@ Follow the instruction in the [blog](https://chloesun.medium.com/set-up-postgres
 
 ```sh
 	wget  wget https://downloads.apache.org/kafka/3.3.1/kafka_2.12-3.3.1.tgz
-	tar -xvzf kafka_2.13-3.2.0.tgz
+	tar -xvzf kafka_2.12-3.3.1.tgz
 ```
 3. Add following lines to .bashrc file
 
