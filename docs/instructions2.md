@@ -36,9 +36,11 @@ Follow the instruction in the [blog](https://chloesun.medium.com/set-up-postgres
 1. First install all dependencies
 
 ```sh
+	
 	sudo apt update
 	sudo apt install default-jre
 	sudo apt install openjdk-8-jre-headless
+	
 ```
 2. Go to [Apache Kafka Downloads](https://michaeljohnpena.com/blog/kafka-wsl2/) to check for the latest release. Right click on the Binary downloads like and copy the link. Download the tgz file and extract it
 
@@ -46,6 +48,7 @@ Follow the instruction in the [blog](https://chloesun.medium.com/set-up-postgres
 	
 	wget  wget https://downloads.apache.org/kafka/3.3.1/kafka_2.12-3.3.1.tgz
 	tar -xvzf kafka_2.12-3.3.1.tgz
+	mv kafka_2.12-3.3.1 /usr/lib/
 
 ```
 3. Add following lines to .bashrc file
