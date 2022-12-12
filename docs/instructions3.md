@@ -35,16 +35,18 @@ Follow instructions in the [tutorial](https://learn.microsoft.com/en-us/azure/vi
 2. Go to [Apache Kafka Downloads](https://michaeljohnpena.com/blog/kafka-wsl2/) to check for the latest release. Right click on the Binary downloads like and copy the link. Download the tgz file and extract it
 
 ```sh
+	
 	wget  wget https://downloads.apache.org/kafka/3.3.1/kafka_2.12-3.3.1.tgz
 	tar -xvzf kafka_2.12-3.3.1
 	mv kafka_2.12-3.3.1 /usr/lib/
+
 ```
 3. Add following lines to .bashrc file
 
 ```	
 	export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 	export KAFKA_HOME=/usr/lib/kafka_2.12-3.3.1
-	
+
 ```
 4. Run `source ~/.bashrc` to export the new environment variables without opening WSL. 
 
@@ -61,6 +63,7 @@ Follow instructions in the [tutorial](https://learn.microsoft.com/en-us/azure/vi
 2. Download the plugin and extract the contents
 
 ```sh
+	
 	wget https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/1.2.5.Final/debezium-connector-postgres-1.2.5.Final-plugin.tar.gz
 	tar -xvzf debezium-connector-postgres-1.2.5.Final-plugin.tar.gz
 
@@ -68,11 +71,14 @@ Follow instructions in the [tutorial](https://learn.microsoft.com/en-us/azure/vi
 3. Copy debezium JAR files to Kafka installation. 
 
 ```sh
+	
 	cp debezium-connector-postgres/*.jar $KAFKA_HOME/libs
+
 ```
 4. Update the content of Kafka connect properties file in `$KAFKA_HOME/config/connect-distributed.properties` as shown below
 
 ```sh
+	
 	bootstrap.servers={event hub namespace}.servicebus.windows.net:9093
 	group.id=connect-cluster-group
 
@@ -176,11 +182,13 @@ For deleting connectors use command `curl -i -X DELETE localhost:8083/connectors
 1. Create a kcat(kafkacat) config file `kafkacat.conf` in current directory with following contents
 
 ```sh
+	
 	metadata.broker.list={event hub namespace}.servicebus.windows.net:9093
 	security.protocol=SASL_SSL
 	sasl.mechanisms=PLAIN
 	sasl.username=$ConnectionString
 	sasl.password=Endpoint=sb://{event hub namespace}/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey={shared access key}
+	
 ```
 2. Run following command to list all topics
 
