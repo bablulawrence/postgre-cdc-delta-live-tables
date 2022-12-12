@@ -48,8 +48,10 @@ Follow the instruction in the [blog](https://chloesun.medium.com/set-up-postgres
 ```
 3. Add following lines to .bashrc file
 
-```	export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+```	
+	export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 	export KAFKA_HOME=/usr/lib/kafka_2.12-3.3.1
+	
 ```
 4. Run `source ~/.bashrc` to export the new environment variables without opening WSL. 
 
