@@ -74,6 +74,9 @@ param windowsVmOSVersion string = '2022-datacenter-azure-edition'
 @description('Size of the virtual machine.')
 param windowsVmSize string = 'Standard_D2s_v5'
 
+@description('Blob URI')
+param blobUri string = ''
+
 var vnetAddressPrefix = '10.1.0.0/16'
 var linuxVmSubnetAddressPrefix = '10.1.0.0/24'
 var windowsVmSubnetAddressPrefix = '10.1.1.0/24'
@@ -81,6 +84,7 @@ var windowsVmSubnetAddressPrefix = '10.1.1.0/24'
 var linuxVmOsDiskType = 'Standard_LRS'
 var linuxVmPublicIPAddressName = '${linuxVmName}PublicIP'
 var linuxVmNetworkInterfaceName = '${linuxVmName}NetInt'
+var linuxVmImageName = '${linuxVmName}Image'
 var linuxVmSubnetName = 'linuxVmSubnet'
 
 var windowVmOsDiskType = 'StandardSSD_LRS'
@@ -180,8 +184,11 @@ resource windowsVmSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-05-01' 
     privateLinkServiceNetworkPolicies: 'Enabled'
     networkSecurityGroup: {
       id: windowsVmNsg.id
-    }
+    }    
   }
+  dependsOn: [
+    linuxVmSubnet
+  ]
 }
 
 resource linuxVmNic 'Microsoft.Network/networkInterfaces@2021-05-01' = {
@@ -221,6 +228,25 @@ resource linuxVmPublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   }
 }
 
+resource linuxVmImage 'Microsoft.Compute/images@2022-08-01' = {
+  name: linuxVmImageName
+  location: location
+  
+  properties: {
+    hyperVGeneration: 'V2'    
+    storageProfile: {      
+      osDisk: {
+        blobUri: blobUri
+        caching: 'ReadWrite'                        
+        osState: 'Generalized'
+        osType: 'Linux'        
+        storageAccountType: 'Standard_LRS'
+      }      
+    }
+  }
+}
+
+
 resource linuxVm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
   name: linuxVmName
   location: location
@@ -236,10 +262,7 @@ resource linuxVm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
         }
       }
       imageReference: {
-        publisher: 'Canonical'
-        offer: '0001-com-ubuntu-server-focal'
-        sku: ubuntuOSVersion
-        version: 'latest'
+        id: linuxVmImage.id
       }
     }
     networkProfile: {

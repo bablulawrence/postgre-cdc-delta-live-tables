@@ -41,6 +41,8 @@ var networkInterfaceName = '${linuxVmName}NetInt'
 var osDiskType = 'Standard_LRS'
 var linuxVmSubnetAddressPrefix = '10.1.0.0/24'
 var addressPrefix = '10.1.0.0/16'
+
+
 var linuxConfiguration = {
   disablePasswordAuthentication: true
   ssh: {
@@ -50,6 +52,24 @@ var linuxConfiguration = {
         keyData: linuxAdminPasswordOrKey
       }
     ]
+  }
+}
+
+resource symbolicname 'Microsoft.Compute/images@2022-08-01' = {
+  name: imageName
+  location: location
+  
+  properties: {
+    hyperVGeneration: 'V2'    
+    storageProfile: {      
+      osDisk: {
+        blobUri: blobUri
+        caching: 'ReadWrite'                        
+        osState: 'Generalized'
+        osType: 'Linux'        
+        storageAccountType: 'Standard_LRS'
+      }      
+    }
   }
 }
 
