@@ -25,7 +25,7 @@ schema = StructType(
                                 [
                                     StructField("promo_id", IntegerType(), True),
                                     StructField("promo_qty", IntegerType(), True),
-                                    StructField("promo_disc", DecimalType(), True),
+                                    StructField("promo_disc", DecimalType(3,2), True),
                                     StructField("promo_item", StringType(), True),
                                 ]
                             ),
@@ -48,7 +48,7 @@ schema = StructType(
                     [
                         StructField("promo_id", IntegerType(), True),
                         StructField("promo_qty", IntegerType(), True),
-                        StructField("promo_disc", DecimalType(), True),
+                        StructField("promo_disc", DecimalType(3,2), True),
                         StructField("promo_item", StringType(), True),
                     ]
                 ),
