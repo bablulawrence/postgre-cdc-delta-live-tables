@@ -1,12 +1,12 @@
 # Databricks notebook source
-# import dlt
+import dlt
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
 # BOOTSTRAP_SERVERS = "az-cslabs-ph2-event-hub1.servicebus.windows.net:9093"; 
 EH_NS_NAME = "az-cslabs-event-hub-ns"
 BOOTSTRAP_SERVERS = f"{EH_NS_NAME}.servicebus.windows.net:9093"; 
-SAKEY = "9Pd1a6FG2IGYdry/bk7CLQWkihoxhZkTVDVds5EiTpk="
+SAKEY = "UR+tdi5brOqFxphEl2rZdwszylRHA3tkwhOqsdqA464="
 CONN_STRING = f'Endpoint=sb://{EH_NS_NAME}.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey={SAKEY}'
 LOGIN_MODULE = "kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule"
 EH_SASL = f'{LOGIN_MODULE} required username="$ConnectionString" password="{CONN_STRING}";'
@@ -27,7 +27,17 @@ df = ( spark.readStream
 );
 
 #Convert from base64 to string
-df = (df.withColumn("key", df["key"].cast("string"))
-        .withColumn("value",df["value"].cast("string")))
+df = (df.withColumn("key", col("key").cast("string"))
+        .withColumn("value",col("value").cast("string")))
 
 # df.display()
+
+# Create bronze delta live table
+@dlt.table(table_properties={"pipelines.reset.allowed": "false"},
+           spark_conf={"pipelines.trigger.interval" : "1 seconds"} )
+def sales_orders_bronze():
+    return df
+
+# COMMAND ----------
+
+
