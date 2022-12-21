@@ -70,6 +70,9 @@ def sales_orders_silver():
         .withColumn("row", regexp_replace("row", "\\\\", ""))
         .select(from_json(col("row"), schema).alias("row"))
         .select("row.*")
+        .withColumn("ordered_products", explode("ordered_products"))
+        .withColumn("order_datetime", from_unixtime("order_datetime"))
+        .withColumn("order_id", col("ordered_products").id)
     )
 
 
