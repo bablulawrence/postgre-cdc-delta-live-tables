@@ -72,7 +72,7 @@ customers_df = customers_df.withColumn("key", col("key").cast("string")).withCol
 
 # Create bronze delta live table
 @dlt.table(
-    table_properties={"pipelines.reset.allowed": "false"},
+#     table_properties={"pipelines.reset.allowed": "false"},
     spark_conf={"pipelines.trigger.interval": "1 seconds"},
 )
 def customers_bronze():
