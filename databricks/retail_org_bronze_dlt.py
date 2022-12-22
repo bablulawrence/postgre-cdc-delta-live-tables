@@ -19,7 +19,7 @@ EH_SASL = (
 
 sales_orders_df = (
     spark.readStream.format("kafka")
-    .option("kafka.bootstrap.servers", BOOTSTRAP_SERVERS)
+    .option("kafka.bootstrap.servers",  f"{EH_NS_NAME}.servicebus.windows.net:9093")
     .option("subscribe", "retail.public.sales_orders")  # Saled orders topic
     .option("kafka.sasl.mechanism", "PLAIN")
     .option("kafka.security.protocol", "SASL_SSL")
@@ -51,7 +51,7 @@ def sales_orders_bronze():
 # --Create Customers table--#
 customers_df = (
     spark.readStream.format("kafka")
-    .option("kafka.bootstrap.servers", BOOTSTRAP_SERVERS)
+    .option("kafka.bootstrap.servers",  f"{EH_NS_NAME}.servicebus.windows.net:9093")
     .option("subscribe", "retail.public.customers")  # Customers topic
     .option("kafka.sasl.mechanism", "PLAIN")
     .option("kafka.security.protocol", "SASL_SSL")
@@ -83,8 +83,8 @@ def customers_bronze():
 # --Create Products table--#
 products_df = (
     spark.readStream.format("kafka")
-    .option("kafka.bootstrap.servers", BOOTSTRAP_SERVERS)
-    .option("subscribe", "retail.public.customers")  # Products topic
+    .option("kafka.bootstrap.servers",  f"{EH_NS_NAME}.servicebus.windows.net:9093")
+    .option("subscribe", "retail.public.products")  # Products topic
     .option("kafka.sasl.mechanism", "PLAIN")
     .option("kafka.security.protocol", "SASL_SSL")
     .option("kafka.sasl.jaas.config", EH_SASL)
