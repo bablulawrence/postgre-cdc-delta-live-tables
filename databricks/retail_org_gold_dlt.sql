@@ -53,9 +53,21 @@ CREATE LIVE TABLE dim_customers (
 
 --SELECT * FROM retail_org.dim_customers
 --SELECT * FROM retail_org.dim_products
+-- SELECT * FROM retail_org.sales_orders_silver
 
 -- COMMAND ----------
 
--- CREATE LIVE TABLE sales_orders_fact_tmp 
--- AS
--- SELECT * FROM retail_o
+CREATE LIVE TABLE fact_sales_orders
+-- CREATE OR REPLACE TEMPORARY VIEW sales_orders_fact_tmp
+AS
+SELECT s.order_number, c.customer_key, p.product_key, s.order_datetime, s.unit_price, s.quantity, (s.unit_price * s.quantity) AS total_price   FROM retail_org.sales_orders_silver s
+INNER JOIN retail_org.dim_products p ON s.product_id = p.product_id
+INNER JOIN retail_org.dim_customers c ON s.customer_id = c.customer_id;
+
+-- SELECT * FROM sales_orders_fact
+
+-- COMMAND ----------
+
+SELECT * FROM retail_org.fact_sales_orders 
+-- SELECT * FROM retail_org.dim_products 
+-- SELECT * FROM retail_org.dim_customers 

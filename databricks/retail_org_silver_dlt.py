@@ -69,7 +69,7 @@ sales_orders_schema = StructType(
 )
 def sales_orders_silver():
     return (
-        #         dlt.read_stream("sales_orders_bronze")
+#                 dlt.read_stream("sales_orders_bronze")
         spark.readStream.format("delta")
         .table("retail_org.sales_orders_bronze")
         .select(get_json_object(col("value"), "$.payload.after").alias("row"))
@@ -81,7 +81,11 @@ def sales_orders_silver():
         .withColumn("ordered_products", explode("ordered_products"))
         .withColumn("order_datetime", from_unixtime("order_datetime"))
         .withColumn("product_id", col("ordered_products").id)
+        .withColumn("unit_price", col("ordered_products").price)
+        .withColumn("quantity", col("ordered_products").qty)
     )
+
+# sales_orders_silver().display()
 
 # COMMAND ----------
 
@@ -205,4 +209,4 @@ def products_silver():
 # MAGIC %sql --DESCRIBE TABLE retail_org.sales_orders_tmp
 # MAGIC --SHOW CREATE TABLE retail_org.sales_orders_tmp
 # MAGIC -- SELECT * FROM retail_org.sales_orders_silver
-# MAGIC --SELECT * FROM retail_org.products_silver
+# MAGIC -- SELECT * FROM retail_org.products_silver
